@@ -63,7 +63,7 @@ or later.
 ## Building the code
 
     1. ./autogen.sh
-    2. ./configure
+    2. ./configure 'CXXFLAGS=-O0 -g' --enable-debugger # Mandatory for μP4
     3. make
     4. [sudo] make install  # if you need to install bmv2
 
