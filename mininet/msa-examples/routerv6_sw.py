@@ -8,6 +8,7 @@
 import sys
 from mininet.net import Mininet
 from mininet.topo import Topo
+from mininet.node import Node
 from mininet.log import setLogLevel, info
 from mininet.cli import CLI
 
@@ -32,6 +33,16 @@ parser.add_argument('--pcap-dump', help='Dump packets on interfaces to pcap file
 
 args = parser.parse_args()
 
+class IPv6Node( Node ):
+    def config( self, ipv6, ipv6_gw=None, **params ):
+        super( IPv6Node, self).config( **params )
+        self.cmd( 'ip -6 addr add %s dev %s' % ( ipv6, self.defaultIntf() ) )
+
+    def terminate( self ):
+        #self.cmd( 'sysctl -w net.ipv6.conf.all.forwarding=0' )
+        super( IPv6Node, self ).terminate()
+
+
 
 class SingleSwitchTopo(Topo):
     "Single switch connected to n (< 256) hosts."
@@ -49,9 +60,11 @@ class SingleSwitchTopo(Topo):
 
         for h in xrange(n):
             host = self.addHost('h%d' % (h + 1),
-                                ip = "10.0.%d.1/16" % (h+1),
+                                cls = IPv6Node,  ipv6='2001::'+str(h + 1)+'/64', 
                                 mac = '00:00:00:00:00:%02x' %(h+1))
-            self.addLink(host, switch, 0, (h+1))
+            self.addLink(host, switch)
+
+
 
 def main():
     num_hosts = args.num_hosts
@@ -65,28 +78,19 @@ def main():
                   host = P4Host,
                   switch = P4Switch,
                   controller = None)
+
+
     net.start()
-
-
     sw_mac = ["00:aa:bb:00:00:%02x" % (n+1) for n in xrange(num_hosts)]
-
-    sw_addr = ["10.0.%d.1" % (n+1) for n in xrange(num_hosts)]
+    sw_addr6 = ["2001::%d" % (n+1) for n in xrange(num_hosts)]
 
     for n in xrange(num_hosts):
         h = net.get('h%d' % (n + 1))
         for k in xrange(num_hosts):
             if n == k:
                 continue
-            # print 'setting arp ' + sw_addr[n] + ' '+ sw_mac[n] +' in h'+str(n+1)
-            # h.setARP(sw_addr[n], sw_mac[n])
-            h.cmd('arp -s ' +sw_addr[k] +' '+ sw_mac[k])
-            h.cmd('ethtool -K eth0 rx off ')
-        print 'dev eth0 via ' + sw_addr[n]
-        h.setDefaultRoute("dev eth0 via %s" % sw_addr[n])
-
-    for n in xrange(num_hosts):
-        h = net.get('h%d' % (n + 1))
-        h.describe()
+            h.cmd('ip -6 neigh add '+ sw_addr6[k] +' lladdr '+ sw_mac[k]+ ' dev '+ str(h.defaultIntf()))
+            print 'ip -6 neigh add '+ sw_addr6[k] +' lladdr '+ sw_mac[k]+ ' dev '+ str(h.defaultIntf())
 
     sleep(1)
 
@@ -94,7 +98,7 @@ def main():
 
     # enable following line and type h1 ping h2 on the CLI
     CLI( net ) 
-    #net.pingAll()
+    # net.pingAll()
     net.stop()
 
 if __name__ == '__main__':
