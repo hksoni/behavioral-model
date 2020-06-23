@@ -93,8 +93,8 @@ def main():
     print "Ready !"
 
     # enable following line and type h1 ping h2 on the CLI
-    CLI( net ) 
-    #net.pingAll()
+    # CLI( net ) 
+    net.pingAll()
     net.stop()
 
 if __name__ == '__main__':

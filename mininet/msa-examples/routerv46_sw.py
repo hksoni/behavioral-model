@@ -107,14 +107,23 @@ def main():
         # print 'dev '+str(h.defaultIntf())+' via ' + sw_addr[n]
         h.setDefaultRoute("dev "+str(h.defaultIntf())+" via %s" % sw_addr[n])
 
-    sleep(1)
+    sleep(3)
 
     print "Ready !"
 
     # enable following line and type h1 ping h2 on the CLI
-    CLI( net ) 
+    # CLI( net ) 
     # h1 ping -6 2001::2
-    # net.pingAll()
+    net.pingAll()
+    for n in xrange(num_hosts):
+        h = net.get('h%d' % (n + 1))
+        for k in xrange(num_hosts):
+            if n == k:
+                continue
+            out, err, ec = h.pexec('ping -6  '+ sw_addr6[k]+' -c 3')
+            print(str(h)+ ' ping -6  '+ sw_addr6[k]+' -c ')
+            print(out)
+
     net.stop()
 
 if __name__ == '__main__':
