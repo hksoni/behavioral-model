@@ -102,6 +102,7 @@ def main():
             # h.setARP(sw_addr[n], sw_mac[n])
             h.cmd('arp -s ' +sw_addr[k] +' '+ sw_mac[k])
             h.cmd('ethtool -K '+str(h.defaultIntf())+' rx off ')
+            h.cmd('ethtool -K '+str(h.defaultIntf())+' tx off ')
             h.cmd('ip -6 neigh add '+ sw_addr6[k] +' lladdr '+ sw_mac[k]+ ' dev '+ str(h.defaultIntf()))
             print 'ip -6 neigh add '+ sw_addr6[k] +' lladdr '+ sw_mac[k]+ ' dev '+ str(h.defaultIntf())
         # print 'dev '+str(h.defaultIntf())+' via ' + sw_addr[n]
@@ -112,9 +113,9 @@ def main():
     print "Ready !"
 
     # enable following line and type h1 ping h2 on the CLI
-    CLI( net ) 
+    # CLI( net ) 
     # h1 ping -6 2001::2
-    # net.pingAll()
+    net.pingAll()
     # for n in xrange(num_hosts):
     #    h = net.get('h%d' % (n + 1))
     #    for k in xrange(num_hosts):
