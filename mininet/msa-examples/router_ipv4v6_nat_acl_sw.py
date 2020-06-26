@@ -116,14 +116,14 @@ def main():
     # CLI( net ) 
     # h1 ping -6 2001::2
     net.pingAll()
-    # for n in xrange(num_hosts):
-    #    h = net.get('h%d' % (n + 1))
-    #    for k in xrange(num_hosts):
-    #        if n == k:
-    #            continue
-    #        out, err, ec = h.pexec('ping -6  '+ sw_addr6[k]+' -c 3')
-    #        print(str(h)+ ' ping -6  '+ sw_addr6[k]+' -c ')
-    #        print(out)
+    for n in xrange(num_hosts):
+       h = net.get('h%d' % (n + 1))
+       for k in xrange(num_hosts):
+           if n == k:
+               continue
+           out, err, ec = h.pexec('ping -6  '+ sw_addr6[k]+' -c 3')
+           print(str(h)+ ' ping -6  '+ sw_addr6[k]+' -c ')
+           print(out)
 
     net.stop()
 
