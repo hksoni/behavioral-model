@@ -6,6 +6,7 @@
 #
 
 import sys
+import os
 from mininet.net import Mininet
 from mininet.topo import Topo
 from mininet.node import Node
@@ -14,7 +15,16 @@ from mininet.cli import CLI
 
 sys.path.insert(1, './bmv2/mininet/')
 sys.path.insert(1, './../')
+
+# Get the value of
+P4_MININET_PATH = os.environ['P4_MININET_PATH']
+if P4_MININET_PATH is None:
+    print("P4_MININET_PATH is not set, p4_mininet may not be found")
+# Print the value of
+print("P4_MININET_PATH", P4_MININET_PATH)
+sys.path.insert(1, P4_MININET_PATH)
 from p4_mininet import P4Switch, P4Host
+
 
 import argparse
 from time import sleep
@@ -113,8 +123,8 @@ def main():
     print "Ready !"
 
     # enable following line and type h1 ping h2 on the CLI
-    print "Ipv6 ping command":
-    print "h1 ping -6 2001::2":
+    print "Ipv6 ping command"
+    print "h1 ping -6 2001::2"
     CLI( net ) 
     # net.pingAll()
     # for n in xrange(num_hosts):
