@@ -77,8 +77,8 @@ class SingleSwitchTopo(Topo):
 
         for h in xrange(n):
             host = self.addHost('h%d' % (h + 1),
-                                cls = IPv6Node,  ipv6='2001::'+str(h + 1)+'/64', 
-                                ip = "10.0.%d.1/16" % (h+1),
+                    cls = IPv6Node,  ipv6='202'+str(h + 1)+'::1/64', 
+                                ip = "10.0.%d.1/24" % (h+1),
                                 mac = '00:00:00:00:00:%02x' %(h+1))
             self.addLink(host, switch)
 
@@ -101,22 +101,25 @@ def main():
     net.start()
     sw_mac = ["00:aa:bb:00:00:%02x" % (n+1) for n in xrange(num_hosts)]
     sw_addr = ["10.0.%d.1" % (n+1) for n in xrange(num_hosts)]
-    sw_addr6 = ["2001::%d" % (n+1) for n in xrange(num_hosts)]
+    gw_addr = ["10.0.%d.254" % (n+1) for n in xrange(num_hosts)]
+    sw_addr6 = ["202%d::1" % (n+1) for n in xrange(num_hosts)]
+    gw_addr6 = ["202%d::10" % (n+1) for n in xrange(num_hosts)]
 
     for n in xrange(num_hosts):
         h = net.get('h%d' % (n + 1))
+        h.cmd('arp -s ' +gw_addr[n] +' '+ sw_mac[n])
+        h.cmd(' route add default gw ' +gw_addr[n] +' '+ str(h.defaultIntf()))
+        h.cmd('ethtool -K '+str(h.defaultIntf())+' rx off ')
+        h.cmd('ethtool -K '+str(h.defaultIntf())+' tx off ')
+        h.cmd('ip -6 neigh add '+ gw_addr6[n] +' lladdr '+ sw_mac[n]+ ' dev '+ str(h.defaultIntf()))
+        h.cmd('ip -6 route add default via '+ gw_addr6[n])
         for k in xrange(num_hosts):
             if n == k:
                 continue
-            # print 'setting arp ' + sw_addr[n] + ' '+ sw_mac[n] +' in h'+str(n+1)
-            # h.setARP(sw_addr[n], sw_mac[n])
-            h.cmd('arp -s ' +sw_addr[k] +' '+ sw_mac[k])
-            h.cmd('ethtool -K '+str(h.defaultIntf())+' rx off ')
-            h.cmd('ethtool -K '+str(h.defaultIntf())+' tx off ')
-            h.cmd('ip -6 neigh add '+ sw_addr6[k] +' lladdr '+ sw_mac[k]+ ' dev '+ str(h.defaultIntf()))
-            print 'ip -6 neigh add '+ sw_addr6[k] +' lladdr '+ sw_mac[k]+ ' dev '+ str(h.defaultIntf())
+            # h.cmd('ip -6 neigh add '+ sw_addr6[k] +' lladdr '+ sw_mac[k]+ ' dev '+ str(h.defaultIntf()))
+            # print 'ip -6 neigh add '+ sw_addr6[k] +' lladdr '+ sw_mac[k]+ ' dev '+ str(h.defaultIntf())
         # print 'dev '+str(h.defaultIntf())+' via ' + sw_addr[n]
-        h.setDefaultRoute("dev "+str(h.defaultIntf())+" via %s" % sw_addr[n])
+        # h.setDefaultRoute("dev "+str(h.defaultIntf())+" via %s" % sw_addr[n])
 
     sleep(3)
 
